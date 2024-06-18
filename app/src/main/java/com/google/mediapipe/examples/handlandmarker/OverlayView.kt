@@ -711,74 +711,142 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                             var tempchar = char
                             if(initialConsonantstemp != null) {
                                 finalConsonantstemp = null
-                                if(medialVowelstemp == 'ㅑ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅒ'
+                                if(addSign){
                                     val combinedChar =
                                         combineCharacters(initialConsonantstemp!!, tempchar, null)
-                                    val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                    val newText = currentText + combinedChar // 기존 텍스트에 추가
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
                                     medialVowelstemp = tempchar
-                                }else if(medialVowelstemp == 'ㅘ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅙ'
-                                    val combinedChar =
-                                        combineCharacters(initialConsonantstemp!!, tempchar, null)
-                                    val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
-                                    messageEditText.setText(newText)
-                                    messageEditText.setSelection(newText.length)
-                                    medialVowelstemp = tempchar
-                                }else if(medialVowelstemp == 'ㅝ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅞ'
-                                    val combinedChar =
-                                        combineCharacters(initialConsonantstemp!!, tempchar, null)
-                                    val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
-                                    messageEditText.setText(newText)
-                                    messageEditText.setSelection(newText.length)
-                                    medialVowelstemp = tempchar
-                                }else if(medialVowelstemp == 'ㅜ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅟ'
-                                    val combinedChar =
-                                        combineCharacters(initialConsonantstemp!!, tempchar, null)
-                                    val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
-                                    messageEditText.setText(newText)
-                                    messageEditText.setSelection(newText.length)
-                                    medialVowelstemp = tempchar
-                                }else{
-                                    if(medialVowelstemp != null){
-                                        val combinedChar =
-                                            combineCharacters('ㅇ', tempchar, null)
-                                        val newText = currentText + combinedChar // 기존 텍스트에 추가
-                                        messageEditText.setText(newText)
-                                        messageEditText.setSelection(newText.length)
-                                        initialConsonantstemp = 'ㅇ'
-                                        medialVowelstemp = tempchar
+                                }
+                                else{
+                                    if (char == 'ㅖ')
+                                    {
+                                        if(medialVowelstemp != null){
+                                            tempchar = 'ㅆ'
+                                            val combinedChar =
+                                                combineCharacters(initialConsonantstemp!!, medialVowelstemp!!, tempchar)
+                                            val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            finalConsonantstemp = tempchar
+                                        }else{
+                                            val combinedChar =
+                                                combineCharacters(initialConsonantstemp!!, tempchar, null)
+                                            val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            medialVowelstemp = tempchar
+                                        }
+                                    }
+                                    else {
+                                        if (medialVowelstemp == 'ㅑ' && char == 'ㅐ') {
+                                            tempchar = 'ㅒ'
+                                            val combinedChar =
+                                                combineCharacters(
+                                                    initialConsonantstemp!!,
+                                                    tempchar,
+                                                    null
+                                                )
+                                            val newText =
+                                                currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            medialVowelstemp = tempchar
+                                        } else if (medialVowelstemp == 'ㅘ' && char == 'ㅐ') {
+                                            tempchar = 'ㅙ'
+                                            val combinedChar =
+                                                combineCharacters(
+                                                    initialConsonantstemp!!,
+                                                    tempchar,
+                                                    null
+                                                )
+                                            val newText =
+                                                currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            medialVowelstemp = tempchar
+                                        } else if (medialVowelstemp == 'ㅝ' && char == 'ㅐ') {
+                                            tempchar = 'ㅞ'
+                                            val combinedChar =
+                                                combineCharacters(
+                                                    initialConsonantstemp!!,
+                                                    tempchar,
+                                                    null
+                                                )
+                                            val newText =
+                                                currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            medialVowelstemp = tempchar
+                                        } else if (medialVowelstemp == 'ㅜ' && char == 'ㅐ') {
+                                            tempchar = 'ㅟ'
+                                            val combinedChar =
+                                                combineCharacters(
+                                                    initialConsonantstemp!!,
+                                                    tempchar,
+                                                    null
+                                                )
+                                            val newText =
+                                                currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                            messageEditText.setText(newText)
+                                            messageEditText.setSelection(newText.length)
+                                            medialVowelstemp = tempchar
+                                        } else {
+                                            if (medialVowelstemp != null) {
+                                                val combinedChar =
+                                                    combineCharacters('ㅇ', tempchar, null)
+                                                val newText =
+                                                    currentText + combinedChar // 기존 텍스트에 추가
+                                                messageEditText.setText(newText)
+                                                messageEditText.setSelection(newText.length)
+                                                initialConsonantstemp = 'ㅇ'
+                                                medialVowelstemp = tempchar
 
-                                    }else{
-                                        val combinedChar =
-                                            combineCharacters(initialConsonantstemp!!, tempchar, null)
-                                        val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
-                                        messageEditText.setText(newText)
-                                        messageEditText.setSelection(newText.length)
-                                        medialVowelstemp = tempchar}
+                                            } else {
+                                                val combinedChar =
+                                                    combineCharacters(
+                                                        initialConsonantstemp!!,
+                                                        tempchar,
+                                                        null
+                                                    )
+                                                val newText =
+                                                    currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
+                                                messageEditText.setText(newText)
+                                                messageEditText.setSelection(newText.length)
+                                                medialVowelstemp = tempchar
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             else{
-                                if(medialVowelstemp == 'ㅑ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅒ'
-                                }else if(medialVowelstemp == 'ㅘ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅙ'
-                                }else if(medialVowelstemp == 'ㅝ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅞ'
-                                }else if(medialVowelstemp == 'ㅜ' && char == 'ㅐ' ){
-                                    tempchar = 'ㅟ'
+                                if(addSign){
+                                    val combinedChar =
+                                        combineCharacters(initialConsonantstemp!!, tempchar, null)
+                                    val newText = currentText + combinedChar // 기존 텍스트에 추가
+                                    messageEditText.setText(newText)
+                                    messageEditText.setSelection(newText.length)
+                                    medialVowelstemp = tempchar
                                 }
-                                val combinedChar =
-                                    combineCharacters('ㅇ', tempchar, null)
-                                val newText = currentText + combinedChar // 기존 텍스트에 추가
-                                messageEditText.setText(newText)
-                                messageEditText.setSelection(newText.length)
-                                initialConsonantstemp = 'ㅇ'
-                                medialVowelstemp = tempchar
+                                else{
+                                    if(medialVowelstemp == 'ㅑ' && char == 'ㅐ' ){
+                                        tempchar = 'ㅒ'
+                                    }else if(medialVowelstemp == 'ㅘ' && char == 'ㅐ' ){
+                                        tempchar = 'ㅙ'
+                                    }else if(medialVowelstemp == 'ㅝ' && char == 'ㅐ' ){
+                                        tempchar = 'ㅞ'
+                                    }else if(medialVowelstemp == 'ㅜ' && char == 'ㅐ' ){
+                                        tempchar = 'ㅟ'
+                                    }
+                                    val combinedChar =
+                                        combineCharacters('ㅇ', tempchar, null)
+                                    val newText = currentText + combinedChar // 기존 텍스트에 추가
+                                    messageEditText.setText(newText)
+                                    messageEditText.setSelection(newText.length)
+                                    initialConsonantstemp = 'ㅇ'
+                                    medialVowelstemp = tempchar
+                                }
                             }
                             showToastMessage(context, "$tempchar")
                             addSign = false
