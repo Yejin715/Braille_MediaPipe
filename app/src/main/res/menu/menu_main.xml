@@ -3,7 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:title="Setting" />
-    <item
-        android:title="Bluetooth" />
+        android:id="@+id/key_settings"
+        android:orderInCategory="100"
+        android:title="@string/key_settings"
+        app:showAsAction="never"/>
+
 </menu>

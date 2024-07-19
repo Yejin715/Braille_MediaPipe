@@ -1,5 +1,6 @@
 package com.google.mediapipe.examples.handlandmarker
 
+import android.content.Intent
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.text.Editable
@@ -7,24 +8,44 @@ import android.text.TextWatcher
 import android.view.KeyEvent
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.mediapipe.examples.handlandmarker.databinding.ActivityMainBinding
+import com.google.mediapipe.examples.handlandmarker.ble.BleConnectDialogFragment
+import com.google.mediapipe.examples.handlandmarker.ble.BleViewModel
+import com.google.mediapipe.examples.handlandmarker.ble.BleRepository
+import com.google.mediapipe.examples.handlandmarker.ble.BleViewModelFactory
 import java.util.Locale
+import androidx.lifecycle.ViewModelProvider
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import androidx.lifecycle.Observer
+import android.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var bleViewModel: BleViewModel
     private val messageList = ArrayList<Message>()
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var textToSpeech: TextToSpeech
+    private lateinit var bleConnectDialogFragment: BleConnectDialogFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
+        setSupportActionBar(activityMainBinding.toolbar)
+
+        val repository = BleRepository() // 생성자 매개변수에 맞게 조정
+        val factory = BleViewModelFactory(repository)
+        bleViewModel = ViewModelProvider(this, factory).get(BleViewModel::class.java)
+
+        bleConnectDialogFragment = BleConnectDialogFragment(bleViewModel)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
@@ -46,30 +67,37 @@ class MainActivity : AppCompatActivity() {
 
         val sendButton: Button = findViewById(R.id.submit_btn)
         val messageEditText: EditText = findViewById(R.id.message_et)
+        val btnOpenPopup: ImageButton = findViewById(R.id.btnOpenPopup)
 
+        btnOpenPopup.setImageResource(R.drawable.ic_bluetooth_disconnected)
+
+        btnOpenPopup.setOnClickListener {
+            showPopup()
+        }
+
+        observeViewModel()
 
         sendButton.setOnClickListener {
-            handleSendMessage(messageEditText)
+            handleSendMessageByYou(messageEditText)
         }
 
-        // 엔터 키 이벤트 처리
-        messageEditText.setOnKeyListener { _, keyCode, event ->
-            handleKeyDown(keyCode, event, sendButton)
-        }
 
-        messageEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+    }
 
-            override fun afterTextChanged(s: Editable?) {
-                s?.let {
-                    // TTS 함수 호출
+    private fun observeViewModel() {
+        bleViewModel.isConnected.observe(this, Observer { event ->
+            event.getContentIfNotHandled()?.let { isConnected ->
+                if (isConnected) {
+                    activityMainBinding.btnOpenPopup.setImageResource(R.drawable.ic_bluetooth_connected)
+                } else {
+                    activityMainBinding.btnOpenPopup.setImageResource(R.drawable.ic_bluetooth_disconnected)
                 }
             }
         })
-
     }
+
+
     public fun speakOut(text: String) {
         textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
     }
@@ -81,22 +109,40 @@ class MainActivity : AppCompatActivity() {
         textToSpeech.shutdown()
     }
 
-    public fun handleSendMessage(messageEditText: EditText) {
-
-
+    fun handleSendMessage(messageEditText: EditText, sender: String) {
         val recyclerView = activityMainBinding.listRv
 
-        // MessageAdapter 초기화
-        messageAdapter = MessageAdapter(this, messageList)
+        // Initialize MessageAdapter
+        if (recyclerView?.adapter == null) {
+            messageAdapter = MessageAdapter(this, messageList)
+            recyclerView?.layoutManager = LinearLayoutManager(this)
+            recyclerView?.adapter = messageAdapter
+        }
 
-        recyclerView?.layoutManager = LinearLayoutManager(this)
-        recyclerView?.adapter = messageAdapter
         val message = messageEditText.text.toString().trim()
         if (message.isNotEmpty()) {
-            addMessage(message, "You")
+            addMessage(message, sender)
             messageEditText.text.clear()
-            recyclerView?.scrollToPosition(messageList.size - 1) // 새로운 메시지가 보이도록 스크롤
+            recyclerView?.scrollToPosition(messageList.size - 1) // Scroll to the new message
         }
+        if (sender == "You") {
+            sendData(message)
+        }
+
+    }
+
+    fun handleSendMessageByBraille(messageEditText: EditText) {
+        handleSendMessage(messageEditText, "Braille")
+    }
+
+    fun handleSendMessageByYou(messageEditText: EditText) {
+        handleSendMessage(messageEditText, "You")
+    }
+
+    private fun sendData(data: String) {
+        val bleviewModel = ViewModelProvider(this).get(BleViewModel::class.java)
+
+        bleviewModel.writeData(data, "string")
     }
 
     private fun handleKeyDown(keyCode: Int, event: KeyEvent, sendButton: Button): Boolean {
@@ -115,7 +161,52 @@ class MainActivity : AppCompatActivity() {
         messageAdapter.notifyItemInserted(messageList.size - 1) // 새로운 아이템 추가를 어댑터에 알림
     }
 
+    private fun showPopup() {
+        val fragmentManager = supportFragmentManager
+        bleConnectDialogFragment.show(fragmentManager, "BleConnectDialog")
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.key_settings -> {
+                val intent = Intent(this, ShortcutKeySetting::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showExitConfirmationDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("앱을 종료하시겠습니까?")
+            .setCancelable(false)
+            .setPositiveButton("예") { dialog, id ->
+                super.onBackPressed()
+                finishAffinity()
+            }
+            .setNegativeButton("아니요") { dialog, id ->
+                dialog.dismiss()
+            }
+        val alert = builder.create()
+        alert.show()
+    }
+
     override fun onBackPressed() {
-        finish()
+        // Handle back press in the activity
+
+        if (bleConnectDialogFragment.isVisible) {
+            bleConnectDialogFragment.dismiss()
+            // Optionally handle back press logic for the dialog
+            // For example, you can call a function inside BleConnectDialog to handle it
+        } else {
+            showExitConfirmationDialog()
+        }
     }
 }

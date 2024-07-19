@@ -30,7 +30,6 @@
     <string name="alt_bottom_sheet_threshold_button_plus">Increasing
         threshold of hand detect results button</string>
     <string name="menu_camera">Camera</string>
-    <string name="menu_gallery">Gallery</string>
     <string name="tv_gallery_placeholder">Click + to add an image or a video
         to begin running the hand landmarker.</string>
 
@@ -44,7 +43,7 @@
         Threshold</string>
     <string name="label_num_hands">Number of Hands</string>
     <string name="label_delegate">Delegate</string>
-
+    <string name="key_settings">Shortcut keys Setting</string>
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>

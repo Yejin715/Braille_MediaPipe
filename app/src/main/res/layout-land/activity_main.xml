@@ -13,8 +13,9 @@
 
         <RelativeLayout
             android:id="@+id/relativeLayout"
-            android:layout_width="300dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="4"
             android:orientation="vertical">
 
             <androidx.fragment.app.FragmentContainerView
@@ -30,25 +31,48 @@
                 tools:context=".MainActivity" />
 
             <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="43dp"
-                android:layout_height="46dp"
+                android:id="@+id/btnOpenPopup"
+                android:layout_width="?android:attr/actionBarSize"
+                android:layout_height="?android:attr/actionBarSize"
                 android:layout_alignParentRight="true"
-                app:layout_anchorGravity="end|top"
-                app:srcCompat="@drawable/ic_baseline_bluetooth_" />
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerCrop"
+                app:layout_anchorGravity="end|top" />
 
         </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="6">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?android:attr/actionBarSize"
+                    android:background="@android:color/white"
+                    app:title=" "
+
+                    />
+
+            </com.google.android.material.appbar.AppBarLayout>
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list_rv"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:layout_marginTop="?android:attr/actionBarSize"
                 app:layout_constraintBottom_toTopOf="@+id/message_layout"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

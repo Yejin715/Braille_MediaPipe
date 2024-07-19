@@ -17,6 +17,8 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'de.undercouch.download'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -48,6 +50,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        dataBinding = true
     }
 }
 
@@ -96,4 +99,26 @@ dependencies {
 
     // MediaPipe Library
     implementation 'com.google.mediapipe:tasks-vision:0.10.0'
+
+    // RxBle
+    implementation "com.polidea.rxandroidble2:rxandroidble:1.12.1"
+    // RxJava
+    implementation "io.reactivex.rxjava2:rxkotlin:2.4.0"
+    implementation "io.reactivex.rxjava2:rxjava:2.2.17"
+    implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
+
+    implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-core:$koin_version"
+
+
+    // Kotlin components
+    def coroutines = '1.5.2'
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines"
+
+    // lifecycle
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+
 }

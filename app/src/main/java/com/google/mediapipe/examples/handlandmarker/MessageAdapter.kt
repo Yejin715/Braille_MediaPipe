@@ -14,9 +14,27 @@ class MessageAdapter(private val context: Context, private val messageList: Arra
     RecyclerView.Adapter<MessageAdapter.ViewHolder>() {
 
     // 뷰홀더 생성
+
+    companion object {
+        private const val VIEW_TYPE_SENDER = 1
+        private const val VIEW_TYPE_RECEIVER = 2
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        val message = messageList[position]
+        return if (message.senderName == "You") {
+            VIEW_TYPE_SENDER
+        } else {
+            VIEW_TYPE_RECEIVER
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // XML 레이아웃을 인플레이트하여 새로운 뷰 생성
-        val view = LayoutInflater.from(context).inflate(R.layout.item_message, parent, false)
+        val view = when (viewType) {
+            VIEW_TYPE_SENDER -> LayoutInflater.from(context).inflate(R.layout.item_message_sender, parent, false)
+            VIEW_TYPE_RECEIVER -> LayoutInflater.from(context).inflate(R.layout.item_message, parent, false)
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
         return ViewHolder(view)
     }
 

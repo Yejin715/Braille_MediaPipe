@@ -36,7 +36,14 @@
         android:supportsRtl="true"
         android:taskAffinity=""
         android:theme="@style/AppTheme"
-        tools:ignore="AllowBackup">
+        tools:ignore="AllowBackup"
+        android:name="com.google.mediapipe.examples.handlandmarker.MyApplication">
+
+        <activity
+            android:name=".ShortcutKeySetting"
+            android:label="@string/key_settings"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="landscape"/>
 
         <activity
             android:name=".MainActivity"
@@ -54,8 +61,27 @@
                 android:name="android.notch_support"
                 android:value="true" />
         </activity>
+
+        <activity android:name=".ble.BleConnectDialogFragment"
+            android:theme="@style/Theme.AppCompat.Dialog"/>
+
     </application>
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- Request legacy Bluetooth permissions on older devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- Include "neverForLocation" only if you can strongly assert that
+         your app never derives physical location from Bluetooth scan results. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 </manifest>

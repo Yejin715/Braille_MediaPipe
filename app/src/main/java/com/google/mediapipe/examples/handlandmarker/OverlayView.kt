@@ -16,9 +16,12 @@ import androidx.core.content.ContextCompat
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import com.google.mediapipe.examples.handlandmarker.ble.BleViewModel
 import kotlin.math.abs
+import androidx.lifecycle.ViewModelProvider
 
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+
     private var results: HandLandmarkerResult? = null
     private var linePaint = Paint()
     private var pointPaint = Paint()
@@ -204,19 +207,43 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         '9' to listOf(false, true, false, true, false, false),
     )
 
+    private val brailleShortcutPatterns = mapOf(
+        'a' to listOf(false, false, true, false, false, false),
+        'b' to listOf(false, true, false, false, false, false),
+        'c' to listOf(true, false, false, false, false, false),
+        'd' to listOf(false, false, false, true, false, false),
+        'e' to listOf(false, false, false, false, true, false),
+        'f' to listOf(false, false, false, false, false, true),
+        'g' to listOf(false, true, true, false, false, false),
+        'h' to listOf(true, false, true, false, false, false),
+        'i' to listOf(true, true, false, false, false, false),
+        'j' to listOf(true, true, true, false, false, false),
+        'k' to listOf(false, false, false, true, true, false),
+        'l' to listOf(false, false, false, true, false, true),
+        'm' to listOf(false, false, false, false, true, true),
+        'n' to listOf(false, false, false, true, true, true),
+        'o' to listOf(false, false, true, true, false, false),
+        'p' to listOf(false, true, false, true, false, false),
+        'q' to listOf(true, false, false, true, false, false),
+        'r' to listOf(false, false, true, false, true, false),
+        's' to listOf(false, false, true, false, false, true),
+        't' to listOf(false, true, true, true, true, false),
+    )
+
+
     // 임의의 좌표 정의
     private val randomPoints = listOf(
-        Triple(0.282f, 0.84f, -0.30f),
-        Triple(0.359f, 0.84f, -0.33f),
-        Triple(0.427f, 0.796f, -0.32f),
-        Triple(0.607f, 0.778f, -0.4f),
-        Triple(0.67f, 0.814f, -0.44f),
-        Triple(0.75f, 0.826f, -0.4f)
+        Triple(0.233f, 0.903f, -0.30f),
+        Triple(0.317f, 0.90f, -0.33f),
+        Triple(0.393f, 0.853f, -0.32f),
+        Triple(0.585f, 0.848f, -0.4f),
+        Triple(0.66f, 0.89f, -0.44f),
+        Triple(0.745f, 0.888f, -0.4f)
     )
-    private val spacePoint = Triple(0.561f, 0.595f, -0.30f)
-    private val controlPoint = Triple(0.46f, 0.6f, -0.30f)
-    private val enterPoint = Triple(0.838f, 0.78f, -0.30f)
-    private val backspacePoint = Triple(0.2f, 0.803f, -0.30f)
+    private val spacePoint = Triple(0.54f, 0.655f, -0.30f)
+    private val controlPoint = Triple(0.44f, 0.656f, -0.30f)
+    private val enterPoint = Triple(0.832f, 0.845f, -0.30f)
+    private val backspacePoint = Triple(0.145f, 0.86f, -0.30f)
 
     init {
         initPaints()
@@ -289,7 +316,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                     }
                 }
             }
-// 교차 여부 판단 및 표시
+            // 교차 여부 판단 및 표시
             val brailleIntersectedPoints = mutableListOf<Boolean>()
 
             // 모든 점 그리기 및 교차 여부 판단
@@ -400,7 +427,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                         mainActivity.runOnUiThread {
                             val messageEditText =
                                 mainActivity.findViewById<EditText>(R.id.message_et)
-                            mainActivity.handleSendMessage(messageEditText)
+                            mainActivity.handleSendMessageByBraille(messageEditText)
                             showToastMessage(context, "Enter Button")
                             enterview = true
                             initialConsonantstemp = null
@@ -619,6 +646,21 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                     }
 
                     2 -> {
+
+                        for ((char, pattern) in brailleShortcutPatterns) {
+                            var match = true
+                            for (i in pattern.indices) {
+                                if (pattern[i] != intersectedPoints[i]) {
+                                    match = false
+                                    break
+                                }
+                            }
+                            if (match) {
+                                temppatten = intersectedPoints
+
+                                return Pair(char, 6)
+                            }
+                        }
                     }
 
                     else -> {
@@ -656,6 +698,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
             if (charnum == charcheknum && !Charview) {
 
                 val mainActivity = context as MainActivity
+                val bleViewModel = ViewModelProvider(mainActivity).get(BleViewModel::class.java)
+
                 mainActivity.runOnUiThread {
                     val messageEditText = mainActivity.findViewById<EditText>(R.id.message_et)
                     val currentText = messageEditText.text.toString()
@@ -673,6 +717,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                 messageEditText.setText(newText)
                                 messageEditText.setSelection(newText.length)
                                 showToastMessage(context, "$char")
+                                sendData(char.toString())
                             }
                             addSign = false
                         }
@@ -692,12 +737,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                 val newText = currentText.dropLast(1) + tempchar // 기존 텍스트에 추가
                                 messageEditText.setText(newText)
                                 messageEditText.setSelection(newText.length)
+                                sendData(tempchar.toString())
                                 doublebool = false
                             }
                             else{
                                 val newText = currentText + tempchar // 기존 텍스트에 추가
                                 messageEditText.setText(newText)
                                 messageEditText.setSelection(newText.length)
+                                sendData(tempchar.toString())
                             }
                             if(char == 'ㅅ'){
                                 doublebool = true
@@ -717,6 +764,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     val newText = currentText + combinedChar // 기존 텍스트에 추가
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
+                                    sendData(combinedChar.toString())
                                     medialVowelstemp = tempchar
                                 }
                                 else{
@@ -729,6 +777,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                             val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             finalConsonantstemp = tempchar
                                         }else{
                                             val combinedChar =
@@ -736,6 +785,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                             val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             medialVowelstemp = tempchar
                                         }
                                     }
@@ -752,6 +802,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                 currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             medialVowelstemp = tempchar
                                         } else if (medialVowelstemp == 'ㅘ' && char == 'ㅐ') {
                                             tempchar = 'ㅙ'
@@ -765,6 +816,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                 currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             medialVowelstemp = tempchar
                                         } else if (medialVowelstemp == 'ㅝ' && char == 'ㅐ') {
                                             tempchar = 'ㅞ'
@@ -778,6 +830,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                 currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             medialVowelstemp = tempchar
                                         } else if (medialVowelstemp == 'ㅜ' && char == 'ㅐ') {
                                             tempchar = 'ㅟ'
@@ -791,6 +844,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                 currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                             messageEditText.setText(newText)
                                             messageEditText.setSelection(newText.length)
+                                            sendData(combinedChar.toString())
                                             medialVowelstemp = tempchar
                                         } else {
                                             if (medialVowelstemp != null) {
@@ -800,6 +854,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                     currentText + combinedChar // 기존 텍스트에 추가
                                                 messageEditText.setText(newText)
                                                 messageEditText.setSelection(newText.length)
+                                                sendData(combinedChar.toString())
                                                 initialConsonantstemp = 'ㅇ'
                                                 medialVowelstemp = tempchar
 
@@ -814,6 +869,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                                     currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                                 messageEditText.setText(newText)
                                                 messageEditText.setSelection(newText.length)
+                                                sendData(combinedChar.toString())
                                                 medialVowelstemp = tempchar
                                             }
                                         }
@@ -827,6 +883,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     val newText = currentText + combinedChar // 기존 텍스트에 추가
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
+                                    sendData(combinedChar.toString())
                                     medialVowelstemp = tempchar
                                 }
                                 else{
@@ -844,6 +901,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     val newText = currentText + combinedChar // 기존 텍스트에 추가
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
+                                    sendData(combinedChar.toString())
                                     initialConsonantstemp = 'ㅇ'
                                     medialVowelstemp = tempchar
                                 }
@@ -906,6 +964,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                 val newText = currentText.dropLast(1) + combinedChar // 기존 텍스트에 추가
                                 messageEditText.setText(newText)
                                 messageEditText.setSelection(newText.length)
+                                sendData(combinedChar.toString())
                                 finalConsonantstemp = tempchar
                             }
 //                            else{
@@ -934,6 +993,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
                                     showToastMessage(context, "$char")
+                                    sendData(char.toString())
                                 }
                             }
                         }
@@ -945,12 +1005,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "물결")
+                                        sendData(char.toString())
                                         preSign = null
                                     }else{
                                         val newText = currentText + char // 기존 텍스트에 추가
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "작대기")
+                                        sendData(char.toString())
                                         preSign = char
                                     }
                                 }
@@ -960,12 +1022,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "작은 따음표 열기")
+                                        sendData(char.toString())
                                         preSign = null
                                     }else {
                                         val newText = currentText + '"' // 기존 텍스트에 추가
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "큰 따음표 열기")
+                                        sendData(char.toString())
                                         preSign = null
                                     }
                                 }
@@ -974,6 +1038,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
                                     showToastMessage(context, "큰 따음표 닫기")
+                                    sendData(char.toString())
                                     preSign = '4'
                                 }
                                 '2' -> {
@@ -986,6 +1051,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "작은 따음표 닫기")
+                                        sendData(char.toString())
                                         preSign = null
                                     }
                                 }
@@ -994,6 +1060,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
                                     showToastMessage(context, "쉼표")
+                                    sendData(char.toString())
                                     preSign = '5'
                                 }
                                 ':' -> {
@@ -1002,6 +1069,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "콜론")
+                                        sendData(char.toString())
                                         preSign = null
                                     }
                                 }
@@ -1015,6 +1083,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                         messageEditText.setText(newText)
                                         messageEditText.setSelection(newText.length)
                                         showToastMessage(context, "세미콜론")
+                                        sendData(char.toString())
                                         preSign = null
                                     }
                                 }
@@ -1024,20 +1093,41 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                                     messageEditText.setText(newText)
                                     messageEditText.setSelection(newText.length)
                                     showToastMessage(context, "$char")
+                                    sendData(char.toString())
                                     preSign = null
                                 }
                             }
                             addSign = false
+                        }
+
+                        6->{
+                            val tempstring = when (char) {
+                                in 'a'..'t' -> MyApplication.prefs.getString("text_$char", "")
+
+                                else -> char.toString()
+                            }
+
+                            val newText = currentText + tempstring
+                            messageEditText.setText(newText)
+                            messageEditText.setSelection(newText.length)
+                            showToastMessage(context, tempstring)
+
+
+                            if (bleViewModel.isConnect.get()) {
+                                classifyAndDecomposeCharacters(tempstring)
+                            }
                         }
                         else -> {
                             val newText = currentText + char // 기존 텍스트에 추가
                             messageEditText.setText(newText)
                             messageEditText.setSelection(newText.length)
                             showToastMessage(context, "$char")
+                            sendData(char.toString())
                             addSign = false
                         }
                     }
                 }
+
                 Charview = true
             }
             else {
@@ -1066,6 +1156,70 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
         return unicodeValue.toChar()
     }
+
+    private fun decomposeCharacter(syllable: Char): Triple<Char, Char, Char?> {
+        val initialConsonants = listOf('ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ')
+        val medialVowels = listOf('ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ')
+        val finalConsonants  = listOf(' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ')
+
+        val unicodeValue = syllable.code - 0xAC00
+        val choIndex = unicodeValue / (21 * 28)
+        val jungIndex = (unicodeValue % (21 * 28)) / 28
+        val jongIndex = unicodeValue % 28
+
+        val initial = initialConsonants[choIndex]
+        val medial = medialVowels[jungIndex]
+        val final = if (jongIndex != 0) finalConsonants[jongIndex] else null
+
+        return Triple(initial, medial, final)
+    }
+
+    fun Char.isPunctuation(): Boolean {
+        return this in listOf(
+            '.', ',', '!', '?', ';', ':', '-', '~', '\'', '\"'
+        )
+    }
+
+    fun classifyAndDecomposeCharacters(text: String) {
+        for (char in text) {
+            when {
+                char in '가'..'힣' -> {
+                    val (initial, medial, final) = decomposeCharacter(char)
+                    println("Character: $char -> 초성: $initial, 중성: $medial, 종성: ${final ?: "없음"}")
+                    println("${char}는 한글입니다.")
+                    sendData(char.toString())
+                    sendData(initial.toString())
+                    sendData(medial.toString())
+                    if (final != null) {
+                        sendData(final.toString())
+                    }
+                }
+
+                char in 'a'..'z' || char in 'A'..'Z' -> {
+                    println("${char}는 영어입니다.")
+                    sendData(char.toString())
+                }
+
+                char in '0'..'9' -> {
+                    println("${char}는 숫자입니다.")
+                    sendData(char.toString())
+                }
+
+                char.isWhitespace() -> {
+                    println("${char}는 공백입니다.")
+                    sendData(char.toString())
+                }
+
+                char.isPunctuation() -> {
+                    println("${char}는 문장부호입니다.")
+                    sendData(char.toString())
+                }
+
+                else -> println("${char}는 알 수 없는 문자입니다.")
+            }
+        }
+    }
+
     fun setResults(
         handLandmarkerResults: HandLandmarkerResult,
         imageHeight: Int,
@@ -1101,6 +1255,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         }
 
         invalidate()
+    }
+
+    private fun sendData(data: String) {
+        val mainActivity = context as MainActivity
+        val bleviewModel = ViewModelProvider(mainActivity).get(BleViewModel::class.java)
+        if (bleviewModel.isConnect.get()) {
+            bleviewModel.writeData(data, "string")
+        }
     }
 
     companion object {

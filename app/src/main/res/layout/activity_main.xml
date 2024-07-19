@@ -33,12 +33,14 @@
                 tools:context=".MainActivity" />
 
             <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="55dp"
-                android:layout_height="52dp"
+                android:id="@+id/btnOpenPopup"
+                android:layout_width="43dp"
+                android:layout_height="46dp"
                 android:layout_alignParentRight="true"
-                app:layout_anchorGravity="end|top"
-                app:srcCompat="@drawable/ic_baseline_bluetooth_" />
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerCrop"
+                app:layout_anchorGravity="end|top" />
+
         </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
